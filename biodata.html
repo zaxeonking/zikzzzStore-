@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Biodata Saya</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #000;
+      font-family: 'Courier New', monospace;
+      color: #00fff0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .container {
+      text-align: center;
+      opacity: 0;
+      transform: translateY(30px);
+      animation: slideIn 1.2s ease-out forwards;
+    }
+
+    @keyframes slideIn {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .foto {
+      width: 180px;
+      height: 180px;
+      object-fit: cover;
+      border-radius: 50%;
+      border: 4px solid black;
+      box-shadow: 0 0 15px 5px white;
+      margin-bottom: 20px;
+    }
+    
+    a {
+      margin-top: 20px;
+      text-decoration: none;
+      color: #00fff0;
+      font-weight: bold;
+    }
+
+    h1.typing {
+      white-space: nowrap;
+      overflow: hidden;
+      border-right: 2px solid white;
+      font-size: 28px;
+      text-shadow: 0 0 10px white;
+      animation: typing 3s steps(40, end) forwards, blink-caret 0.7s step-end infinite;
+      margin-bottom: 25px;
+    }
+
+    .done-typing {
+      border-right: none !important;
+    }
+
+    @keyframes typing {
+      from { width: 0 }
+      to { width: 100% }
+    }
+
+    @keyframes blink-caret {
+      50% { border-color: transparent }
+    }
+
+    .info-box {
+      border: 2px solid #00fff0;
+      padding: 10px 20px;
+      margin: 10px auto;
+      width: 280px;
+      background-color: black;
+      color: #00fff0;
+      text-shadow: 0 0 8px white;
+      font-size: 18px;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <img src="https://k.top4top.io/p_3414rk0p11.jpg" alt="Foto Anda" class="foto" />
+    <h1 id="title" class="typing">Halo, Nama Saya Zikzzz</h1>
+    <div class="info-box"><strong>Nama:</strong> Zikzzz</div>
+    <div class="info-box"><strong>Sekolah:</strong> SMPN 45 Jakarta Barat</div>
+    <div class="info-box"><strong>Gelar:</strong> Pelajar Menengah</div>
+    <div class="info-box"><strong>Hobi:</strong> Ngoding, Desain, Main Game, mencoba hal baru</div>
+    
+    <a href="nextpage.html">Kembali</a>
+  </div>
+
+  <script>
+    const title = document.getElementById('title');
+    title.addEventListener('animationend', () => {
+      title.classList.add('done-typing');
+    });
+  </script>
+</body>
+</html>
