@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>ZikzzzStore</title>
   <style>
-    body {
+   body {
       background: black;
       color: #00ffcc;
       font-family: 'Courier New', monospace;
@@ -177,6 +177,7 @@
 </head>
 <body>
   <h1>ZikzzzStore</h1>
+  <input type="text" id="nama" placeholder="Masukkan Nama Anda" />
 
   <label for="filter-kategori">Pilih Kategori:</label>
   <select id="filter-kategori">
@@ -208,10 +209,8 @@
     <div class="item" data-price="10000">Editing vidio - Rp10.000</div>
   </div>
 
-  <input type="text" id="nama" placeholder="Masukkan Nama Anda" />
-    <div class="struk" id="struk"></div>
+  <div class="struk" id="struk"></div>
   <button onclick="sendToWhatsApp()">Pesan Sekarang</button>
-
   <a href="nextpage.html">Kembali</a>
 
   <audio id="beep" src="LAKEY INSPIRED - Better Days [TubeRipper.com].mp3" preload="auto"></audio>
@@ -231,7 +230,7 @@
     menuItems.forEach((item) => {
       item.addEventListener('click', () => {
         playBeep();
-        addToOrder(item.textContent);
+        addToOrder(item);
       });
     });
 
@@ -241,14 +240,24 @@
       });
     }
 
-    function addToOrder(item) {
-      order.push(item);
+    function addToOrder(itemEl) {
+      const nama = inputNama.value.trim();
+      if (!nama) {
+        alert("Masukkan nama Anda terlebih dahulu sebelum memilih produk.");
+        inputNama.focus();
+        return;
+      }
+      const itemText = itemEl.textContent;
+      const itemPrice = parseInt(itemEl.dataset.price);
+      order.push({ text: itemText, price: itemPrice });
       renderOrderList();
+      renderStruk();
     }
 
     function removeOrder(index) {
       order.splice(index, 1);
       renderOrderList();
+      renderStruk();
     }
 
     function renderOrderList() {
@@ -256,11 +265,39 @@
       order.forEach((item, index) => {
         const li = document.createElement("li");
         li.innerHTML = `
-          <span>${item}</span>
+          <span>${item.text}</span>
           <span class="remove-btn" onclick="removeOrder(${index})">&times;</span>
         `;
         orderList.appendChild(li);
       });
+    }
+
+    function renderStruk() {
+      const nama = inputNama.value.trim();
+      if (!nama || order.length === 0) {
+        struk.style.display = 'none';
+        return;
+      }
+
+      const itemCount = {};
+      const itemPrices = {};
+      order.forEach(({ text, price }) => {
+        itemCount[text] = (itemCount[text] || 0) + 1;
+        itemPrices[text] = price;
+      });
+
+      let orderListText = '';
+      let totalHarga = 0;
+      let index = 1;
+
+      for (const [item, count] of Object.entries(itemCount)) {
+        const subtotal = itemPrices[item] * count;
+        totalHarga += subtotal;
+        orderListText += `${index++}. ${item} x${count} = Rp${subtotal.toLocaleString()}\n`;
+      }
+
+      struk.style.display = 'block';
+      struk.innerText = `Nama: ${nama}\n\n${orderListText}\nTotal: Rp${totalHarga.toLocaleString()}\n\nTerima kasih!`;
     }
 
     function sendToWhatsApp() {
@@ -276,20 +313,26 @@
       }
 
       const itemCount = {};
-      order.forEach(item => {
-        itemCount[item] = (itemCount[item] || 0) + 1;
+      const itemPrices = {};
+      order.forEach(({ text, price }) => {
+        itemCount[text] = (itemCount[text] || 0) + 1;
+        itemPrices[text] = price;
       });
 
       let orderListText = '';
+      let totalHarga = 0;
       let index = 1;
+
       for (const [item, count] of Object.entries(itemCount)) {
-        orderListText += `${index++}. ${item} x${count}\n`;
+        const subtotal = itemPrices[item] * count;
+        totalHarga += subtotal;
+        orderListText += `${index++}. ${item} x${count} = Rp${subtotal.toLocaleString()}\n`;
       }
 
-      const message = `Halo Zikzzz,%0ASaya *${nama}* ingin memesan:%0A%0A${encodeURIComponent(orderListText)}%0ATerima kasih!`;
+      const message = `Halo Zikzzz,%0ASaya *${nama}* ingin memesan:%0A%0A${encodeURIComponent(orderListText)}%0ATotal: Rp${totalHarga.toLocaleString()}%0A%0ATerima kasih!`;
 
       struk.style.display = 'block';
-      struk.innerText = `Nama: ${nama}\n\n${orderListText}\nTerima kasih!`;
+      struk.innerText = `Nama: ${nama}\n\n${orderListText}\nTotal: Rp${totalHarga.toLocaleString()}\n\nTerima kasih!`;
 
       const adminNumber = "6285718808025";
       window.open(`https://wa.me/${adminNumber}?text=${message}`, '_blank');
@@ -312,8 +355,9 @@
         highlightSelected();
         playBeep();
       } else if (e.key === 'Enter') {
+        const selectedItem = menuItems[selectedIndex];
         playBeep();
-        addToOrder(menuItems[selectedIndex].textContent);
+        addToOrder(selectedItem);
       } else if (e.key === 'Escape') {
         struk.style.display = 'none';
       }
@@ -323,11 +367,7 @@
     filterSelect.addEventListener('change', () => {
       const selected = filterSelect.value;
       kategoriContainers.forEach(container => {
-        if (selected === "all" || container.dataset.kategori === selected) {
-          container.style.display = 'grid';
-        } else {
-          container.style.display = 'none';
-        }
+        container.style.display = (selected === "all" || container.dataset.kategori === selected) ? 'grid' : 'none';
       });
     });
   </script>
