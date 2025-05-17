@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Project Saya</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: black;
+      font-family: 'Courier New', monospace;
+      color: #00fff0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .container {
+      text-align: center;
+      opacity: 0;
+      transform: translateY(40px);
+      animation: slideIn 1s ease-out forwards;
+    }
+
+    @keyframes slideIn {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    a {
+      margin-top: 20px;
+      text-decoration: none;
+      color: #00fff0;
+      font-weight: bold;
+    }
+    
+
+    h1.typing {
+      font-size: 26px;
+      white-space: nowrap;
+      overflow: hidden;
+      border-right: 2px solid white;
+      text-shadow: 0 0 10px white;
+      margin-bottom: 30px;
+      animation: typing 3s steps(40, end) forwards, blink-caret 0.8s step-end infinite;
+    }
+
+    .done-typing {
+      border-right: none !important;
+    }
+
+    @keyframes typing {
+      from { width: 0 }
+      to { width: 100% }
+    }
+
+    @keyframes blink-caret {
+      50% { border-color: transparent }
+    }
+
+    .box {
+      border: 2px solid #00fff0;
+      background-color: black;
+      color: #00fff0;
+      text-shadow: 0 0 8px white;
+      padding: 20px;
+      margin: 15px auto;
+      width: 300px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px white;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1 id="title" class="typing">Project Website Saya</h1>
+    <div class="box">
+      Saya sedang mengerjakan project website sederhana menggunakan HTML, CSS, dan JavaScript. Tujuannya adalah membuat halaman interaktif seperti biodata, toko, dan sosial media.
+    </div>
+    <div class="box">
+      Alasan saya belajar website adalah karena saya ingin bisa membuat aplikasi dan sistem sendiri, serta membuka peluang untuk menjadi developer profesional.
+    </div>
+      <a href="nextpage.html">Kembali</a>
+  </div>
+  
+
+
+  <script>
+    const title = document.getElementById('title');
+    title.addEventListener('animationend', () => {
+      title.classList.add('done-typing');
+    });
+  </script>
+</body>
+</html>
