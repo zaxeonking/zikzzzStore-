@@ -1,0 +1,393 @@
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ZikzzzStore</title>
+  <style>
+    body {
+      background: black;
+      color: #00ffcc;
+      font-family: 'Courier New', monospace;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
+      overflow-x: hidden;
+    }
+    body > * {
+      opacity: 0;
+      transform: translateY(40px);
+      animation: fadeSlideIn 0.8s ease-out forwards;
+    }
+    body > *:nth-child(1) { animation-delay: 0.1s; }
+    body > *:nth-child(2) { animation-delay: 0.2s; }
+    body > *:nth-child(3) { animation-delay: 0.3s; }
+    body > *:nth-child(4) { animation-delay: 0.4s; }
+    body > *:nth-child(5) { animation-delay: 0.5s; }
+    body > *:nth-child(6) { animation-delay: 0.6s; }
+    body > *:nth-child(7) { animation-delay: 0.7s; }
+    body > *:nth-child(8) { animation-delay: 0.8s; }
+
+    @keyframes fadeSlideIn {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    h1 {
+      text-shadow: 0 0 10px #00ffcc;
+      font-size: 2.5em;
+      margin-bottom: 20px;
+    }
+
+    a {
+      margin-top: 20px;
+      text-decoration: none;
+      color: blue;
+      font-weight: bold;
+    }
+
+    select, label {
+      color: #00ffcc;
+      font-size: 1em;
+    }
+
+    select {
+      padding: 8px;
+      margin-bottom: 20px;
+      background: black;
+      color: #00ffcc;
+      border: 2px solid #00ffcc;
+      font-size: 1em;
+    }
+
+    .category {
+      display: grid;
+      grid-template-columns: repeat(2, 150px);
+      gap: 15px;
+      margin-bottom: 30px;
+    }
+
+    .category h4 {
+      grid-column: span 2;
+      color: #00ffcc;
+      text-align: center;
+      margin-bottom: 10px;
+    }
+
+    .item {
+      border: 2px solid #00ffcc;
+      padding: 10px;
+      cursor: pointer;
+      text-align: center;
+      transition: transform 0.2s;
+      background: rgba(0, 255, 204, 0.1);
+    }
+
+    .item:hover, .item.selected {
+      background-color: rgba(0, 255, 204, 0.2);
+      border: 2px solid #00ffcc;
+      color: #00ffcc;
+    }
+
+    input[type="text"] {
+      padding: 10px;
+      font-size: 1em;
+      margin-bottom: 15px;
+      border: 2px solid #00ffcc;
+      background: black;
+      color: #00ffcc;
+      width: 250px;
+      text-align: center;
+    }
+
+    button {
+      padding: 10px 20px;
+      background: #00ffcc;
+      border: none;
+      cursor: pointer;
+      font-size: 1.2em;
+      font-weight: bold;
+      color: black;
+      margin-top: 10px;
+    }
+
+    .struk {
+      background: white;
+      color: black;
+      font-family: monospace;
+      padding: 10px;
+      margin-top: 20px;
+      width: 270px;
+      border: 2px dashed black;
+      display: none;
+      white-space: pre-wrap;
+    }
+
+    #orderList {
+      list-style: none;
+      padding: 0;
+      margin: 10px 0 20px;
+      color: #00ffcc;
+      width: 180px;
+    }
+
+    #orderList li {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(0, 255, 204, 0.1);
+      padding: 6px 10px;
+      margin-bottom: 5px;
+      border: 1px dashed #00ffcc;
+      font-family: monospace;
+      font-size: 16px;
+      color: #00ffcc;
+    }
+
+    .remove-btn {
+      display: inline-block;
+      width: 15px;
+      height: 18px;
+      line-height: 20px;
+      text-align: center;
+      color: red;
+      font-weight: bold;
+      border: 1px solid red;
+      border-radius: 4px;
+      background-color: rgba(255, 0, 0, 0.1);
+      margin-left: 10px;
+      cursor: pointer;
+      font-size: 14px;
+      user-select: none;
+      transition: background-color 0.2s;
+    }
+
+    .remove-btn:hover {
+      background-color: rgba(255, 0, 0, 0.3);
+    }
+  </style>
+</head>
+<body>
+  <h1>ZikzzzStore</h1>
+  <input type="text" id="nama" placeholder="Masukkan Nama Anda" />
+  _______________________
+  <label for="filter-kategori">Pilih Kategori:</label>
+  <select id="filter-kategori">
+    <option value="all">Semua</option>
+    <option value="DIGITAL">Digital</option>
+  </select>
+  <h3>Pesanan Anda:</h3>
+  <ul id="orderList"></ul>
+  <div class="category" data-kategori="DIGITAL">
+    <h4>Digital</h4>
+    <div class="item" data-price="7000">Nokos indonesia - Rp7.000</div>
+    <div class="item" data-price="∞">Panel 1Gb-Unli - Rp1K-11k</div>
+    <div class="item" data-price="12000">ADP  - Rp12.000</div>
+    <div class="item" data-price="16000">PT panel  - Rp16.000</div>
+    <div class="item" data-price="22000">owner pt  - Rp22.000</div>
+  </div>
+  <div class="struk" id="struk"></div>
+  <button onclick="sendToWhatsApp()">Pesan Sekarang</button>
+  <a href="nextpage.html">Kembali</a>
+
+  <script>
+    const order = [];
+    let selectedIndex = 0;
+    const menuItems = document.querySelectorAll('.item');
+    const inputNama = document.getElementById('nama');
+    const struk = document.getElementById('struk');
+    const orderList = document.getElementById('orderList');
+    const kategoriContainers = document.querySelectorAll('.category');
+
+    const hiddenCommands = {
+  "Panel 1Gb-Unli - Rp1K-11k": `.buypanel ${inputNama.value.trim()}`,
+  "ADP  - Rp12.000": `.buyadp ${inputNama.value.trim()}`,
+  "PT panel  - Rp16.000": `.buyptpanel ${inputNama.value.trim()}`
+  "owner pt  - Rp22.000": `.buyownpt ${inputNama.value.trim()}`
+};
+
+    function highlightSelected() {
+      menuItems.forEach((item, i) => {
+        item.classList.toggle('selected', i === selectedIndex);
+      });
+    }
+
+function addToOrder(itemName, price) {
+  const nama = inputNama.value.trim();
+  if (!nama) {
+    alert("Masukkan nama Anda terlebih dahulu sebelum memilih produk.");
+    inputNama.focus();
+    return;
+  }
+
+  const isSpecial = Object.keys(hiddenCommands).includes(itemName);
+  const hasSpecial = order.some(item => Object.keys(hiddenCommands).includes(item.name));
+
+  if (isSpecial && order.length > 0) {
+    alert("Produk ini hanya bisa dipesan sendiri tanpa produk lain.");
+    return;
+  }
+
+  if (!isSpecial && hasSpecial) {
+    alert("Anda sudah memilih produk khusus. Tidak bisa menambahkan produk lain.");
+    return;
+  }
+
+  if (isSpecial && order.find(item => item.name === itemName)) {
+    alert("Produk ini hanya bisa dibeli satu kali.");
+    return;
+  }
+
+  order.push({ name: itemName, price });
+  renderOrderList();
+  renderStruk();
+}
+
+    function removeOrder(index) {
+      order.splice(index, 1);
+      renderOrderList();
+      renderStruk();
+    }
+
+    function renderOrderList() {
+      orderList.innerHTML = "";
+      order.forEach((item, index) => {
+        const li = document.createElement("li");
+        li.innerHTML = `<span>${item.name}</span><span class="remove-btn" onclick="removeOrder(${index})">&times;</span>`;
+        orderList.appendChild(li);
+      });
+    }
+
+    function renderStruk() {
+      const nama = inputNama.value.trim();
+      if (!nama || order.length === 0) {
+        struk.style.display = 'none';
+        return;
+      }
+
+      const itemCount = {};
+      const itemPrices = {};
+      order.forEach(({ name, price }) => {
+        itemCount[name] = (itemCount[name] || 0) + 1;
+        itemPrices[name] = price;
+      });
+
+      let orderListText = '';
+      let total = 0;
+      let index = 1;
+      for (const [item, count] of Object.entries(itemCount)) {
+        const subtotal = itemPrices[item] * count;
+        total += subtotal;
+        orderListText += `${index++}. ${item} x${count} = Rp${subtotal.toLocaleString()}
+`;
+      }
+
+      struk.style.display = 'block';
+      struk.innerText = `Nama: ${nama}
+
+${orderListText}
+Total: Rp${total.toLocaleString()}`;
+    }
+
+function sendToWhatsApp() {
+  const nama = inputNama.value.trim();
+  if (!nama) {
+    alert("Masukkan nama Anda terlebih dahulu.");
+    return;
+  }
+
+  if (order.length === 0) {
+    alert("Belum ada pesanan!");
+    return;
+  }
+
+  const hiddenCommands = {
+ "Panel 1Gb-Unli - Rp1K-11k": `.buypanel ${nama}`,
+"ADP  - Rp12.000": `.buyadp ${nama}`,
+  };,
+"PT panel  - Rp16.000": `.buyptpanel ${inputNama.value.trim()}`
+"owner pt  - Rp22.000": `.buyownpt ${inputNama.value.trim()}`
+
+  const commandList = [];
+  const regularItems = [];
+
+  const itemCount = {};
+  order.forEach(({ name }) => {
+    itemCount[name] = (itemCount[name] || 0) + 1;
+  });
+
+  for (const [item, count] of Object.entries(itemCount)) {
+    if (hiddenCommands[item]) {
+      commandList.push(hiddenCommands[item]);
+    } else {
+      regularItems.push(`${item} x${count}`);
+    }
+  }
+
+  const adminNumber = "6282125209567";
+  let message;
+
+  if (commandList.length > 0 && regularItems.length === 0) {
+    // Kirim hanya perintah
+    message = encodeURIComponent(commandList.join("\n"));
+  } else {
+    // Kirim pesan standar
+    let text = `Halo Zikzzz,%0ASaya *${nama}* ingin memesan:%0A%0A`;
+    text += encodeURIComponent(regularItems.map((item, i) => `${i + 1}. ${item}`).join("\n"));
+    text += "%0A%0ATerima kasih!";
+    message = text;
+  }
+
+  window.open(`https://wa.me/${adminNumber}?text=${message}`, '_blank');
+}
+
+    menuItems.forEach((item) => {
+      item.addEventListener('click', () => {
+        addToOrder(item.textContent, parseInt(item.dataset.price));
+      });
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowDown') {
+        selectedIndex = (selectedIndex + 1) % menuItems.length;
+        highlightSelected();
+      } else if (e.key === 'ArrowUp') {
+        selectedIndex = (selectedIndex - 1 + menuItems.length) % menuItems.length;
+        highlightSelected();
+      } else if (e.key === 'Enter') {
+        const nama = inputNama.value.trim();
+        if (!nama) {
+          alert("Masukkan nama Anda terlebih dahulu.");
+          inputNama.focus();
+          return;
+        }
+        const selectedItem = menuItems[selectedIndex];
+        addToOrder(selectedItem.textContent, parseInt(selectedItem.dataset.price));
+      } else if (e.key === 'Escape') {
+        struk.style.display = 'none';
+      }
+    });
+
+    const filterSelect = document.getElementById('filter-kategori');
+    filterSelect.addEventListener('change', () => {
+      const selected = filterSelect.value;
+      kategoriContainers.forEach(container => {
+        if (selected === "all" || container.dataset.kategori === selected) {
+          container.style.display = 'grid';
+        } else {
+          container.style.display = 'none';
+        }
+      });
+    });
+
+    highlightSelected();
+  </script>
+</body>
+</html>
