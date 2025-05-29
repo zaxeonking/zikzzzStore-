@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Our Services</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to bottom, #00fff0,black);
+      text-align: center;
+      padding: 40px 20px;
+      overflow-x: hidden;
+    }
+
+    .header {
+      font-size: 2em;
+      font-weight: bold;
+      margin-bottom: 30px;
+      color: ##6c43e2;
+      animation: fadeSlideUp 1s ease-out;
+    }
+
+    .services {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 20px;
+      max-width: 700px;
+      margin: 0 auto 40px;
+    }
+
+    .service-button {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-decoration: none;
+      background-color: #0fff;
+      padding: 20px;
+      border-radius: 15px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+      transition: transform 0.2s;
+      animation: fadeSlideUp 1s ease-out;
+    }
+
+    .service-button:hover {
+      transform: scale(1.05);
+    }
+
+    .service-icon {
+      width: 60px;
+      height: 60px;
+      margin-bottom: 10px;
+    }
+
+    .service-title {
+      font-weight: 500;
+      color: #000000;
+    }
+
+    .swipe-button {
+      background-color: #3c64f4;
+      color: #00fff0;
+      padding: 12px 24px;
+      border: none;
+      border-radius: 25px;
+      font-size: 16px;
+      cursor: pointer;
+      animation: fadeSlideUp 1.2s ease-out;
+    }
+
+    .swipe-button:hover {
+      background-color: #1e1f5a;
+    }
+
+    @keyframes fadeSlideUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">Play Games</div>
+
+  <div class="services">
+    <a href="Catur.html" class="service-button">
+      <img class="service-icon" src="https://img.icons8.com/ios-filled/100/000000/chessboard.png" alt="Chess" />
+      <div class="service-title">Play Chess</div>
+    </a>
+
+    <a href="Tictacto.html" class="service-button">
+      <img class="service-icon" src="https://img.icons8.com/ios-filled/100/000000/tic-tac-toe.png" alt="Tic Tac Toe" />
+      <div class="service-title">Tic Tac Toe</div>
+    </a>
+  </div>
+
+  <a href="nextpage.html" class="swipe-button"html>Back to menu</a>
+
+</body>
+</html>

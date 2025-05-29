@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Tic Tac Toe</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: #111;
+      color: white;
+      font-family: sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+
+    h1 {
+      margin: 10px 0;
+      font-size: 2.5rem;
+    }
+
+    .scoreboard {
+      display: flex;
+      justify-content: center;
+      gap: 40px;
+      font-size: 1.5rem;
+      margin-bottom: 20px;
+    }
+
+    .board {
+      display: grid;
+      grid-template-columns: repeat(3, 100px);
+      gap: 10px;
+    }
+
+    .cell {
+      width: 100px;
+      height: 100px;
+      background: #333;
+      color: white;
+      font-size: 3rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      border-radius: 10px;
+    }
+
+    .cell.taken {
+      pointer-events: none;
+    }
+
+    .cell.burst {
+      animation: burst 0.6s ease-out;
+      background: red;
+    }
+
+    @keyframes burst {
+      0% { transform: scale(1); background: yellow; }
+      50% { transform: scale(1.4); background: orange; }
+      100% { transform: scale(1); background: red; }
+    }
+
+    .result {
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    .buttons {
+      margin-top: 10px;
+    }
+
+    .buttons button {
+      margin: 0 10px;
+      padding: 8px 16px;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+        .swipe-button:hover {
+      background-color: #00fff0;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Tic Tac Toe</h1>
+  <div class="scoreboard">
+    <div>🔵 X: <span id="scoreX">0</span></div>
+    <div>🔴 O: <span id="scoreO">0</span></div>
+  </div>
+
+  <div class="board" id="board"></div>
+
+  <div class="result" id="resultBox" style="display:none;">
+    <h2 id="winnerMessage"></h2>
+    <div class="buttons">
+      <button onclick="nextRound()">Lanjutkan</button>
+      <button onclick="resetAll()">Berhenti</button>
+    </div>
+  </div><br><br><br><br><br>
+    <a href="nextpage.html" class="swipe-button"html>Back to menu</a>
+
+  <!-- Sound -->
+  <audio id="clickSound" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_f73b26dd66.mp3?filename=button-click-124476.mp3"></audio>
+  <audio id="winSound" src="https://cdn.pixabay.com/download/audio/2021/09/04/audio_aa2c008ba6.mp3?filename=success-1-6297.mp3"></audio>
+
+  <script>
+    const board = document.getElementById('board');
+    const resultBox = document.getElementById('resultBox');
+    const winnerMessage = document.getElementById('winnerMessage');
+    const scoreX = document.getElementById('scoreX');
+    const scoreO = document.getElementById('scoreO');
+    const clickSound = document.getElementById('clickSound');
+    const winSound = document.getElementById('winSound');
+
+    let currentPlayer = 'X';
+    let gameBoard = Array(9).fill(null);
+    let scores = { X: 0, O: 0 };
+    let cells = [];
+
+    const winPatterns = [
+      [0,1,2], [3,4,5], [6,7,8],
+      [0,3,6], [1,4,7], [2,5,8],
+      [0,4,8], [2,4,6]
+    ];
+
+    function checkWinner() {
+      for (let pattern of winPatterns) {
+        const [a, b, c] = pattern;
+        if (gameBoard[a] && gameBoard[a] === gameBoard[b] && gameBoard[b] === gameBoard[c]) {
+          return { winner: gameBoard[a], line: [a, b, c] };
+        }
+      }
+      return gameBoard.includes(null) ? null : { winner: 'Draw' };
+    }
+
+    function handleClick(index, cell) {
+      if (gameBoard[index]) return;
+      gameBoard[index] = currentPlayer;
+      cell.textContent = currentPlayer;
+      cell.classList.add('taken');
+      
+      // Play click sound
+      clickSound.currentTime = 0;
+      clickSound.play();
+
+      const result = checkWinner();
+      if (result) {
+        if (result.winner !== 'Draw') {
+          scores[result.winner]++;
+          scoreX.textContent = scores.X;
+          scoreO.textContent = scores.O;
+
+          result.line.forEach(i => cells[i].classList.add('burst'));
+          setTimeout(() => {
+            winSound.play();
+            showWinner(`Selamat! ${result.winner} menang!`);
+          }, 700);
+        } else {
+          showWinner('Hasil Seri!');
+        }
+        return;
+      }
+
+      currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+    }
+
+    function showWinner(message) {
+      winnerMessage.textContent = message;
+      resultBox.style.display = 'block';
+      board.style.pointerEvents = 'none';
+    }
+
+    function nextRound() {
+      resultBox.style.display = 'none';
+      gameBoard = Array(9).fill(null);
+      currentPlayer = 'X';
+      board.innerHTML = '';
+      createBoard();
+      board.style.pointerEvents = 'auto';
+    }
+
+    function resetAll() {
+      scores = { X: 0, O: 0 };
+      scoreX.textContent = 0;
+      scoreO.textContent = 0;
+      nextRound();
+    }
+
+    function createBoard() {
+      cells = [];
+      for (let i = 0; i < 9; i++) {
+        const cell = document.createElement('div');
+        cell.classList.add('cell');
+        cell.addEventListener('click', () => handleClick(i, cell));
+        board.appendChild(cell);
+        cells.push(cell);
+      }
+    }
+
+    createBoard();
+  </script>
+</body>
+</html>

@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Chess Game</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    #board {
+      display: grid;
+      grid-template-columns: repeat(8, 40px);
+      grid-template-rows: repeat(8, 40px);
+      border: 2px solid black;
+    }
+    .square {
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+      user-select: none;
+      box-sizing: border-box;
+    }
+    .light {
+      background-color: #f0d9b5;
+    }
+    .dark {
+      background-color: #b58863;
+    }
+    .highlight {
+      border: 2px solid lime;
+    }
+    .check {
+      box-shadow: 0 -4px 0 0 red inset;
+    }
+    .controls {
+      margin: 10px;
+    }
+    button {
+      margin: 0 5px;
+      padding: 6px 10px;
+    }
+  </style>
+</head>
+<body>
+  <h2>Simple Chess</h2>
+  <div id="board"></div>
+  <div class="controls">
+    <button onclick="undoMove()">⏪ Back</button>
+    <button onclick="redoMove()">⏩ Forward</button>
+  </div>
+
+  <script>
+    const board = document.getElementById("board");
+    const initialBoard = [
+      ["r", "n", "b", "q", "k", "b", "n", "r"],
+      ["p", "p", "p", "p", "p", "p", "p", "p"],
+      ["", "", "", "", "", "", "", ""],
+      ["", "", "", "", "", "", "", ""],
+      ["", "", "", "", "", "", "", ""],
+      ["", "", "", "", "", "", "", ""],
+      ["P", "P", "P", "P", "P", "P", "P", "P"],
+      ["R", "N", "B", "Q", "K", "B", "N", "R"]
+    ];
+    let gameBoard = JSON.parse(JSON.stringify(initialBoard));
+    let selected = null;
+    let history = [];
+    let future = [];
+
+    function renderBoard() {
+      board.innerHTML = "";
+      const checkSquares = findCheck();
+
+      for (let row = 0; row < 8; row++) {
+        for (let col = 0; col < 8; col++) {
+          const square = document.createElement("div");
+          square.className = `square ${(row + col) % 2 === 0 ? "light" : "dark"}`;
+          square.dataset.row = row;
+          square.dataset.col = col;
+
+          const piece = gameBoard[row][col];
+          if (piece) square.textContent = pieceSymbol(piece);
+
+          if (checkSquares.some(([r, c]) => r === row && c === col)) {
+            square.classList.add("check");
+          }
+
+          square.onclick = () => handleClick(row, col);
+          board.appendChild(square);
+        }
+      }
+
+      if (selected) showValidMoves(selected.row, selected.col);
+    }
+
+    function pieceSymbol(p) {
+      const symbols = {
+        r: "♜", n: "♞", b: "♝", q: "♛", k: "♚", p: "♟",
+        R: "♖", N: "♘", B: "♗", Q: "♕", K: "♔", P: "♙"
+      };
+      return symbols[p] || "";
+    }
+
+    function findCheck() {
+      const kings = [];
+      for (let row = 0; row < 8; row++) {
+        for (let col = 0; col < 8; col++) {
+          const piece = gameBoard[row][col];
+          if (piece === "K" || piece === "k") kings.push({ piece, row, col });
+        }
+      }
+      const checks = [];
+      kings.forEach(({ piece, row, col }) => {
+        const opponentMoves = allOpponentMoves(piece);
+        if (opponentMoves.some(([r, c]) => r === row && c === col)) {
+          checks.push([row, col]);
+        }
+      });
+      return checks;
+    }
+
+    function allOpponentMoves(kingPiece) {
+      const isWhiteKing = kingPiece === "K";
+      const opponentMoves = [];
+      for (let row = 0; row < 8; row++) {
+        for (let col = 0; col < 8; col++) {
+          const piece = gameBoard[row][col];
+          if (!piece) continue;
+          const isWhite = piece === piece.toUpperCase();
+          if (isWhite !== isWhiteKing) {
+            const moves = getValidMoves(row, col, true);
+            opponentMoves.push(...moves);
+          }
+        }
+      }
+      return opponentMoves;
+    }
+
+    function handleClick(row, col) {
+      const piece = gameBoard[row][col];
+      if (selected) {
+        if (row === selected.row && col === selected.col) {
+          selected = null;
+          renderBoard();
+          return;
+        }
+
+        const valid = getValidMovesWithCheckRestriction(selected.row, selected.col);
+        if (valid.some(([r, c]) => r === row && c === col)) {
+          history.push(JSON.parse(JSON.stringify(gameBoard)));
+          future = [];
+          movePiece(selected.row, selected.col, row, col);
+          selected = null;
+        } else {
+          if (piece && isCurrentTurn(piece)) {
+            selected = { row, col };
+          } else {
+            selected = null;
+          }
+        }
+      } else if (piece && isCurrentTurn(piece)) {
+        selected = { row, col };
+      } else {
+        selected = null;
+      }
+      renderBoard();
+    }
+
+    function movePiece(fromRow, fromCol, toRow, toCol) {
+      const piece = gameBoard[fromRow][fromCol];
+      gameBoard[toRow][toCol] = piece;
+      gameBoard[fromRow][fromCol] = "";
+
+      if (piece === "P" && toRow === 0) {
+        gameBoard[toRow][toCol] = choosePromotion("white");
+      } else if (piece === "p" && toRow === 7) {
+        gameBoard[toRow][toCol] = choosePromotion("black").toLowerCase();
+      }
+    }
+
+    function choosePromotion(color) {
+      const options = color === "white" ? ["Q", "R", "B", "N"] : ["q", "r", "b", "n"];
+      return options[0];
+    }
+
+    // Fungsi baru: dapatkan valid moves dengan pembatasan jika sedang skak
+    function getValidMovesWithCheckRestriction(row, col) {
+      const piece = gameBoard[row][col];
+      if (!piece) return [];
+      if (!isCurrentTurn(piece)) return [];
+
+      // Cek apakah raja sendiri dalam skak
+      const kingPos = findKingPosition(piece === piece.toUpperCase());
+      const checkSquares = findCheck();
+
+      // Kalau tidak skak, return moves biasa
+      if (checkSquares.length === 0) {
+        return getValidMoves(row, col);
+      }
+
+      // Jika skak, hanya tunjukkan langkah yang bisa menutupi skak atau memindahkan raja
+      const allMoves = getValidMoves(row, col);
+      const filteredMoves = [];
+
+      const isKing = (piece.toLowerCase() === "k");
+      if (isKing) {
+        // Raja bisa pindah ke mana pun legal tanpa kena skak
+        for (const move of allMoves) {
+          // Pastikan setelah pindah tidak skak
+          if (!wouldBeCheckAfterMove(row, col, move[0], move[1], piece)) {
+            filteredMoves.push(move);
+          }
+        }
+      } else {
+        // Bidak lain harus bisa menghalangi/menangkal skak
+        // Cari posisi bidak yang mengancam raja (skak)
+        const attackers = findAttackersToSquare(kingPos[0], kingPos[1], !isWhite(piece));
+        for (const move of allMoves) {
+          // Cek apakah langkah ini menangkis skak:
+          // - Tangkap penyerang (posisi move sama dengan posisi penyerang)
+          // - Atau menutup jalur skak (hanya berlaku jika 1 penyerang, dan penyerang dari garis lurus / diagonal)
+          if (attackers.length === 1) {
+            const attacker = attackers[0];
+            if (move[0] === attacker[0] && move[1] === attacker[1]) {
+              filteredMoves.push(move);
+            } else {
+              // Cek apakah move menutup jalur skak (hanya untuk bidak garis lurus/diagonal)
+              if (blocksCheckLine(kingPos, attacker, move)) {
+                filteredMoves.push(move);
+              }
+            }
+          }
+        }
+      }
+
+      return filteredMoves;
+    }
+
+    // Cek apakah bidak berwarna putih
+    function isWhite(piece) {
+      return piece === piece.toUpperCase();
+    }
+
+    // Cari posisi raja dari sisi warna tertentu
+    function findKingPosition(isWhiteKing) {
+      for (let r = 0; r < 8; r++) {
+        for (let c = 0; c < 8; c++) {
+          if (gameBoard[r][c] === (isWhiteKing ? "K" : "k")) return [r, c];
+        }
+      }
+      return null;
+    }
+
+    // Cek apakah langkah menyebabkan skak pada posisi setelah pindah
+    function wouldBeCheckAfterMove(fromRow, fromCol, toRow, toCol, piece) {
+      const tempBoard = JSON.parse(JSON.stringify(gameBoard));
+      tempBoard[toRow][toCol] = piece;
+      tempBoard[fromRow][fromCol] = "";
+      return findCheckOnBoard(tempBoard).length > 0;
+    }
+
+    // Temukan semua bidak lawan yang menyerang sebuah kotak (row, col)
+    function findAttackersToSquare(row, col, forWhite) {
+      const attackers = [];
+      for (let r = 0; r < 8; r++) {
+        for (let c = 0; c < 8; c++) {
+          const piece = gameBoard[r][c];
+          if (!piece) continue;
+          if (isWhite(piece) !== forWhite) continue;
+          const moves = getValidMoves(r, c, true);
+          if (moves.some(([mr, mc]) => mr === row && mc === col)) {
+            attackers.push([r, c]);
+          }
+        }
+      }
+      return attackers;
+    }
+
+    // Cek apakah move menutup jalur skak linier/diagonal antara raja dan penyerang
+    function blocksCheckLine(kingPos, attackerPos, move) {
+      const dr = Math.sign(attackerPos[0] - kingPos[0]);
+      const dc = Math.sign(attackerPos[1] - kingPos[1]);
+
+      if (dr === 0 && dc === 0) return false; // sama posisi
+
+      // Jalur kotak antara raja dan penyerang
+      let r = kingPos[0] + dr;
+      let c = kingPos[1] + dc;
+      while (r !== attackerPos[0] || c !== attackerPos[1]) {
+        if (r === move[0] && c === move[1]) return true;
+        r += dr;
+        c += dc;
+      }
+      return false;
+    }
+
+    // Fungsi valid move seperti sebelumnya (tanpa ubahan)
+    function getValidMoves(row, col, ignoreTurn = false) {
+      const piece = gameBoard[row][col];
+      if (!piece) return [];
+      const isWhite = piece === piece.toUpperCase();
+      if (!ignoreTurn && !isCurrentTurn(piece)) return [];
+
+      const moves = [];
+      const directions = {
+        p: [[1, 0], [2, 0], [1, -1], [1, 1]],
+        P: [[-1, 0], [-2, 0], [-1, -1], [-1, 1]],
+       r: [[1, 0], [-1, 0], [0, 1], [0, -1]],
+        n: [
+          [2, 1], [2, -1], [-2, 1], [-2, -1],
+          [1, 2], [1, -2], [-1, 2], [-1, -2]
+        ],
+        b: [
+          [1, 1], [1, -1], [-1, 1], [-1, -1]
+        ],
+        q: [
+          [1, 0], [-1, 0], [0, 1], [0, -1],
+          [1, 1], [1, -1], [-1, 1], [-1, -1]
+        ],
+        k: [
+          [1, 0], [-1, 0], [0, 1], [0, -1],
+          [1, 1], [1, -1], [-1, 1], [-1, -1]
+        ]
+      };
+
+      const lower = piece.toLowerCase();
+      const isWhitePiece = piece === piece.toUpperCase();
+
+      // Helper to check inside board
+      const onBoard = (r, c) => r >= 0 && r < 8 && c >= 0 && c < 8;
+
+      // Pawn moves
+      if (lower === "p") {
+        let dir = isWhitePiece ? -1 : 1;
+        // 1 step forward
+        if (onBoard(row + dir, col) && !gameBoard[row + dir][col]) {
+          moves.push([row + dir, col]);
+          // 2 steps forward from start
+          let startRow = isWhitePiece ? 6 : 1;
+          if (row === startRow && !gameBoard[row + 2 * dir][col]) {
+            moves.push([row + 2 * dir, col]);
+          }
+        }
+        // captures
+        for (let dc of [-1, 1]) {
+          let nr = row + dir;
+          let nc = col + dc;
+          if (onBoard(nr, nc)) {
+            const target = gameBoard[nr][nc];
+            if (target && (isWhitePiece !== (target === target.toUpperCase()))) {
+              moves.push([nr, nc]);
+            }
+          }
+        }
+        // No en passant here for simplicity
+        return moves;
+      }
+
+      // Knight moves
+      if (lower === "n") {
+        for (const [dr, dc] of directions.n) {
+          const nr = row + dr, nc = col + dc;
+          if (!onBoard(nr, nc)) continue;
+          const target = gameBoard[nr][nc];
+          if (!target || (isWhitePiece !== (target === target.toUpperCase()))) {
+            moves.push([nr, nc]);
+          }
+        }
+        return moves;
+      }
+
+      // King moves
+      if (lower === "k") {
+        for (const [dr, dc] of directions.k) {
+          const nr = row + dr, nc = col + dc;
+          if (!onBoard(nr, nc)) continue;
+          const target = gameBoard[nr][nc];
+          if (!target || (isWhitePiece !== (target === target.toUpperCase()))) {
+            moves.push([nr, nc]);
+          }
+        }
+        // No castling for simplicity
+        return moves;
+      }
+
+      // Rook, Bishop, Queen sliding moves
+      let slideDirs = [];
+      if (lower === "r") slideDirs = directions.r;
+      else if (lower === "b") slideDirs = directions.b;
+      else if (lower === "q") slideDirs = directions.q;
+
+      for (const [dr, dc] of slideDirs) {
+        let nr = row + dr, nc = col + dc;
+        while (onBoard(nr, nc)) {
+          const target = gameBoard[nr][nc];
+          if (!target) {
+            moves.push([nr, nc]);
+          } else {
+            if (isWhitePiece !== (target === target.toUpperCase())) {
+              moves.push([nr, nc]);
+            }
+            break; // blocked
+          }
+          nr += dr;
+          nc += dc;
+        }
+      }
+
+      return moves;
+    }
+
+    // Cek giliran berdasarkan jumlah langkah (genap putih, ganjil hitam)
+    function isCurrentTurn(piece) {
+      const whiteTurn = history.length % 2 === 0;
+      return whiteTurn ? piece === piece.toUpperCase() : piece === piece.toLowerCase();
+    }
+
+    function showValidMoves(row, col) {
+      const validMoves = getValidMovesWithCheckRestriction(row, col);
+      for (const [r, c] of validMoves) {
+        const square = board.querySelector(`.square[data-row='${r}'][data-col='${c}']`);
+        if (square) square.classList.add("highlight");
+      }
+    }
+
+    function undoMove() {
+      if (history.length === 0) return;
+      future.push(JSON.parse(JSON.stringify(gameBoard)));
+      gameBoard = history.pop();
+      selected = null;
+      renderBoard();
+    }
+
+    function redoMove() {
+      if (future.length === 0) return;
+      history.push(JSON.parse(JSON.stringify(gameBoard)));
+      gameBoard = future.pop();
+      selected = null;
+      renderBoard();
+    }
+
+    // Cek skak untuk board tertentu (dipakai untuk simulasi)
+    function findCheckOnBoard(testBoard) {
+      // Cari posisi raja putih dan hitam
+      let whiteKing = null, blackKing = null;
+      for (let r=0; r<8; r++) {
+        for (let c=0; c<8; c++) {
+          if (testBoard[r][c] === "K") whiteKing = [r,c];
+          else if (testBoard[r][c] === "k") blackKing = [r,c];
+        }
+      }
+      if (!whiteKing || !blackKing) return [];
+
+      // Fungsi cek apakah suatu kotak diserang oleh lawan
+      function attacked(r, c, byWhite) {
+        for (let rr=0; rr<8; rr++) {
+          for (let cc=0; cc<8; cc++) {
+            const p = testBoard[rr][cc];
+            if (!p) continue;
+            if ((p === p.toUpperCase()) !== byWhite) continue;
+            if (getValidMoves(rr, cc, true).some(([mr, mc]) => mr === r && mc === c)) {
+              return true;
+            }
+          }
+        }
+        return false;
+      }
+
+      const checks = [];
+      if (attacked(whiteKing[0], whiteKing[1], false)) checks.push(whiteKing);
+      if (attacked(blackKing[0], blackKing[1], true)) checks.push(blackKing);
+      return checks;
+    }
+
+    // Inisialisasi board awal
+    renderBoard();
+
+  </script>
+</body>
+</html>
